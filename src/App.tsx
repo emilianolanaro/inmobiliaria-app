@@ -1,50 +1,118 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
-
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
-
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
+    <div className="app">
+      <header className="topbar">
+        <div className="topbar__brand">
+          <h1>Sistema Inmobiliario</h1>
+          <span className="topbar__subtitle">GIS & CRM</span>
+        </div>
 
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <div className="topbar__actions">
+          <div className="connection-status">
+            <span className="connection-status__dot" />
+            Offline
+          </div>
+
+          <button className="topbar__button" type="button">
+            Configuración
+          </button>
+        </div>
+      </header>
+
+      <div className="workspace">
+        <aside className="sidebar">
+          <section className="sidebar__section">
+            <h2>Vista del mapa</h2>
+
+            <label className="field">
+              <span>Proveedor</span>
+              <select defaultValue="local">
+                <option value="local">Mapa local</option>
+              </select>
+            </label>
+
+            <label className="field">
+              <span>Tipo de vista</span>
+              <select defaultValue="map">
+                <option value="map">Mapa</option>
+              </select>
+            </label>
+          </section>
+
+          <section className="sidebar__section">
+            <h2>Capas</h2>
+
+            <label className="checkbox-row">
+              <input type="checkbox" defaultChecked />
+              Barrios
+            </label>
+
+            <label className="checkbox-row">
+              <input type="checkbox" defaultChecked />
+              Manzanas
+            </label>
+
+            <label className="checkbox-row">
+              <input type="checkbox" defaultChecked />
+              Parcelas
+            </label>
+
+            <label className="checkbox-row">
+              <input type="checkbox" defaultChecked />
+              Propiedades
+            </label>
+          </section>
+
+          <section className="sidebar__section">
+            <h2>Filtros</h2>
+
+            <label className="field">
+              <span>Tipo de inmueble</span>
+              <select defaultValue="">
+                <option value="">Todos</option>
+                <option value="house">Casa</option>
+                <option value="lot">Lote</option>
+                <option value="apartment">Departamento</option>
+                <option value="commercial">Local comercial</option>
+              </select>
+            </label>
+
+            <label className="field">
+              <span>Operación</span>
+              <select defaultValue="">
+                <option value="">Todas</option>
+                <option value="sale">Venta</option>
+                <option value="rent">Alquiler</option>
+              </select>
+            </label>
+
+            <button className="primary-button" type="button">
+              Aplicar filtros
+            </button>
+          </section>
+        </aside>
+
+        <main className="map-area">
+          <div className="map-placeholder">
+            <div>
+              <span className="map-placeholder__eyebrow">Mapa principal</span>
+              <h2>Chajarí, Entre Ríos</h2>
+              <p>
+                En el siguiente paso vamos a reemplazar esta zona por
+                OpenLayers.
+              </p>
+            </div>
+          </div>
+        </main>
       </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
 
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
+      <footer className="statusbar">
+        <span>Base local disponible</span>
+        <span>Versión 0.1.0</span>
+      </footer>
+    </div>
   );
 }
 
