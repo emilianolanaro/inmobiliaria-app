@@ -1,6 +1,24 @@
+import MapView from "./modules/map/presentation/MapView";
+import { useMapStore } from "./modules/map/application/useMapStore";
+
 import "./App.css";
 
 function App() {
+  const baseMapVisible = useMapStore(
+    (state) => state.baseMapVisible,
+  );
+
+  const layers = useMapStore(
+    (state) => state.layers,
+  );
+
+  const setBaseMapVisible = useMapStore(
+    (state) => state.setBaseMapVisible,
+  );
+
+  const setLayerVisible = useMapStore(
+    (state) => state.setLayerVisible,
+  );
   return (
     <div className="app">
       <header className="topbar">
@@ -12,7 +30,7 @@ function App() {
         <div className="topbar__actions">
           <div className="connection-status">
             <span className="connection-status__dot" />
-            Offline
+            Desarrollo
           </div>
 
           <button className="topbar__button" type="button">
@@ -45,22 +63,63 @@ function App() {
             <h2>Capas</h2>
 
             <label className="checkbox-row">
-              <input type="checkbox" defaultChecked />
+              <input
+                type="checkbox"
+                checked={baseMapVisible}
+                onChange={(event) =>
+                  setBaseMapVisible(event.target.checked)
+                }
+              />
+              Mapa base
+            </label>
+
+            <label className="checkbox-row">
+              <input
+                type="checkbox"
+                checked={layers.neighborhoods}
+                onChange={(event) =>
+                  setLayerVisible(
+                    "neighborhoods",
+                    event.target.checked,
+                  )
+                }
+              />
               Barrios
             </label>
 
             <label className="checkbox-row">
-              <input type="checkbox" defaultChecked />
+              <input
+                type="checkbox"
+                checked={layers.blocks}
+                onChange={(event) =>
+                  setLayerVisible("blocks", event.target.checked)
+                }
+              />
               Manzanas
             </label>
 
             <label className="checkbox-row">
-              <input type="checkbox" defaultChecked />
+              <input
+                type="checkbox"
+                checked={layers.parcels}
+                onChange={(event) =>
+                  setLayerVisible("parcels", event.target.checked)
+                }
+              />
               Parcelas
             </label>
 
             <label className="checkbox-row">
-              <input type="checkbox" defaultChecked />
+              <input
+                type="checkbox"
+                checked={layers.properties}
+                onChange={(event) =>
+                  setLayerVisible(
+                    "properties",
+                    event.target.checked,
+                  )
+                }
+              />
               Propiedades
             </label>
           </section>
@@ -95,21 +154,12 @@ function App() {
         </aside>
 
         <main className="map-area">
-          <div className="map-placeholder">
-            <div>
-              <span className="map-placeholder__eyebrow">Mapa principal</span>
-              <h2>Chajarí, Entre Ríos</h2>
-              <p>
-                En el siguiente paso vamos a reemplazar esta zona por
-                OpenLayers.
-              </p>
-            </div>
-          </div>
+          <MapView />
         </main>
       </div>
 
       <footer className="statusbar">
-        <span>Base local disponible</span>
+        <span>Mapa base online temporal</span>
         <span>Versión 0.1.0</span>
       </footer>
     </div>
