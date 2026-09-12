@@ -1,7 +1,7 @@
 import MapView from "./modules/map/presentation/MapView";
 import { useMapStore } from "./modules/map/application/useMapStore";
-
 import "./App.css";
+import AterConnectionStatus from "./modules/cadastre/presentation/AterConnectionStatus";
 
 function App() {
   const baseMapVisible = useMapStore(
@@ -18,6 +18,14 @@ function App() {
 
   const setLayerVisible = useMapStore(
     (state) => state.setLayerVisible,
+  );
+
+  const startDrawingExChacra = useMapStore(
+    (state) => state.startDrawingExChacra,
+  );
+
+  const drawingMode = useMapStore(
+    (state) => state.drawingMode,
   );
   return (
     <div className="app">
@@ -72,6 +80,20 @@ function App() {
               />
               Mapa base
             </label>
+            
+            <label className="checkbox-row">
+              <input
+                type="checkbox"
+                checked={layers.exchacras}
+                onChange={(event) =>
+                  setLayerVisible(
+                    "exchacras",
+                    event.target.checked,
+                  )
+                }
+              />
+              Exchacras
+            </label>
 
             <label className="checkbox-row">
               <input
@@ -125,6 +147,28 @@ function App() {
           </section>
 
           <section className="sidebar__section">
+            <h2>Edición catastral</h2>
+
+            <button
+              className="primary-button"
+              type="button"
+              disabled={drawingMode !== null}
+              onClick={startDrawingExChacra}
+            >
+              {drawingMode === "exchacra"
+                ? "Dibujando EXCHACRA..."
+                : "+ Nueva EXCHACRA"}
+            </button>
+
+            {drawingMode === "exchacra" && (
+              <p className="drawing-help">
+                Marcá los vértices de la EXCHACRA sobre el mapa.
+                Hacé clic sobre el primer punto para cerrar el polígono.
+              </p>
+            )}
+          </section>
+
+          <section className="sidebar__section">
             <h2>Filtros</h2>
 
             <label className="field">
@@ -160,6 +204,9 @@ function App() {
 
       <footer className="statusbar">
         <span>Mapa base online temporal</span>
+
+        <AterConnectionStatus />
+
         <span>Versión 0.1.0</span>
       </footer>
     </div>
