@@ -1,7 +1,8 @@
 import Feature from "ol/Feature";
 import GeoJSON from "ol/format/GeoJSON";
 import type Geometry from "ol/geom/Geometry";
-
+import Snap from "ol/interaction/Snap";
+import type Map from "ol/Map";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 
@@ -265,4 +266,92 @@ export async function loadExChacrasIntoSource(
   console.info(
     `EXCHACRAS locales cargadas: ${features.length}`,
   );
+}
+/*
+ * --------------------------------------------------
+ * SNAP DE EXCHACRAS
+ * --------------------------------------------------
+ *
+ * Hace que las herramientas de edición/dibujo
+ * se "enganchen" a:
+ *
+ * - vértices existentes;
+ * - bordes existentes;
+ * - intersecciones.
+ *
+ * Esto evita pequeños huecos o solapamientos
+ * causados por dibujar a ojo.
+ */
+export function createExChacraSnapInteraction(
+  source: ExChacraVectorSource,
+): Snap {
+  return new Snap({
+    source,
+
+    /*
+     * Enganchar a las esquinas.
+     */
+    vertex: true,
+
+    /*
+     * Enganchar a cualquier punto
+     * de un borde.
+     */
+    edge: true,
+
+    /*
+     * También permite utilizar
+     * cruces/intersecciones.
+     */
+    intersection: true,
+
+    /*
+     * Distancia en píxeles dentro
+     * de la cual comienza el efecto imán.
+     *
+     * 12 es suficientemente cómodo
+     * sin resultar demasiado agresivo.
+     */
+    pixelTolerance: 12,
+  });
+}
+
+/*
+ * --------------------------------------------------
+ * FEEDBACK VISUAL DEL SNAP
+ * --------------------------------------------------
+ *
+ * Cuando OpenLayers detecta que el puntero
+ * está enganchado, agregamos una clase CSS.
+ *
+ * Así el usuario tiene una confirmación
+ * visual de que la posición quedó alineada.
+ */
+export function attachExChacraSnapFeedback(
+  map: Map,
+  snap: Snap,
+): () => void {
+  const target =
+    map.getTargetElement();
+
+  snap.on("snap", () => {
+    target.classList.add(
+      "map--snapped",
+    );
+  });
+
+  snap.on("unsnap", () => {
+    target.classList.remove(
+      "map--snapped",
+    );
+  });
+
+  /*
+   * Cleanup.
+   */
+  return () => {
+    target.classList.remove(
+      "map--snapped",
+    );
+  };
 }

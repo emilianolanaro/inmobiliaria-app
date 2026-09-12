@@ -8,6 +8,7 @@ import {
 import Map from "ol/Map";
 import Draw from "ol/interaction/Draw";
 import GeoJSON from "ol/format/GeoJSON";
+import Snap from "ol/interaction/Snap";
 
 import { useMapStore } from "../../map/application/useMapStore";
 
@@ -16,6 +17,8 @@ import { createExChacra } from "../application/createExChacra";
 import {
   type ExChacraVectorSource,
   loadExChacrasIntoSource,
+  createExChacraSnapInteraction,
+  attachExChacraSnapFeedback,
 } from "./exChacraMap";
 
 interface UseExChacraCreationParams {
@@ -68,6 +71,11 @@ export function useExChacraCreation({
     useRef<Draw | null>(null);
 
   /*
+  * Snap activo durante el dibujo.
+  */
+  const snapInteractionRef =
+    useRef<Snap | null>(null);
+  /*
    * Geometría terminada pero todavía
    * no guardada en SQLite.
    */
@@ -104,9 +112,13 @@ export function useExChacraCreation({
     const draftSource =
       draftSourceRef.current;
 
+    const exChacrasSource =
+      exChacrasSourceRef.current;
+
     if (
       !map ||
-      !draftSource
+      !draftSource ||
+      !exChacrasSource
     ) {
       return;
     }
@@ -133,6 +145,15 @@ export function useExChacraCreation({
       return;
     }
 
+    if (snapInteractionRef.current) {
+      map.removeInteraction(
+        snapInteractionRef.current,
+      );
+
+      snapInteractionRef.current =
+        null;
+    }
+
     /*
      * Una nueva operación comienza
      * siempre con el borrador limpio.
@@ -144,6 +165,18 @@ export function useExChacraCreation({
         source: draftSource,
         type: "Polygon",
       });
+
+    /*
+    * El dibujo temporal se podrá enganchar
+    * a las EXCHACRAS ya guardadas.
+    */
+    const snap =
+      createExChacraSnapInteraction(
+        exChacrasSource,
+      );
+
+    snapInteractionRef.current =
+      snap;
 
     drawInteractionRef.current =
       draw;
@@ -208,10 +241,35 @@ export function useExChacraCreation({
           null;
 
         stopDrawing();
+
+        map.removeInteraction(
+          snap,
+        );
+
+        snapInteractionRef.current =
+          null;
+
+        removeSnapFeedback();
       },
     );
 
+    /*
+    * IMPORTANTE:
+    *
+    * Snap se agrega DESPUÉS de Draw.
+    * OpenLayers procesa las interacciones
+    * en el orden necesario para que Snap
+    * modifique primero la coordenada
+    * utilizada por Draw.
+    */
     map.addInteraction(draw);
+    map.addInteraction(snap);
+
+    const removeSnapFeedback =
+      attachExChacraSnapFeedback(
+        map,
+        snap,
+      );
 
     return () => {
       map.removeInteraction(draw);
@@ -221,6 +279,18 @@ export function useExChacraCreation({
         draw
       ) {
         drawInteractionRef.current =
+          null;
+      }
+
+      map.removeInteraction(snap);
+
+      removeSnapFeedback();
+
+      if (
+        snapInteractionRef.current ===
+        snap
+      ) {
+        snapInteractionRef.current =
           null;
       }
     };

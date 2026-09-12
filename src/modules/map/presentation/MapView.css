@@ -9,3 +9,16 @@
   width: 100%;
   height: 100%;
 }
+
+/*
+ * Cuando Snap encuentra un vértice,
+ * borde o intersección válido,
+ * mostramos un cursor distinto.
+ *
+ * Es una confirmación visual de que
+ * la posición está alineada.
+ */
+.map--snapped,
+.map--snapped .ol-viewport {
+  cursor: crosshair !important;
+}

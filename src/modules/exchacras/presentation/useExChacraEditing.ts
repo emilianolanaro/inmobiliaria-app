@@ -9,7 +9,7 @@ import {
 import Collection from "ol/Collection";
 import Feature from "ol/Feature";
 import GeoJSON from "ol/format/GeoJSON";
-
+import Snap from "ol/interaction/Snap";
 import type Geometry from "ol/geom/Geometry";
 
 import Modify from "ol/interaction/Modify";
@@ -31,6 +31,8 @@ import type {
 } from "./ExChacraSelectionPanel";
 
 import {
+  attachExChacraSnapFeedback,
+  createExChacraSnapInteraction,
   type ExChacraVectorSource,
   loadExChacrasIntoSource,
 } from "./exChacraMap";
@@ -171,6 +173,21 @@ export function useExChacraEditing({
     );
 
   /*
+  * Snap utilizado tanto durante Modify
+  * como durante Translate.
+  */
+  const snapInteractionRef =
+    useRef<Snap | null>(null);
+
+  /*
+  * Cleanup del feedback visual.
+  */
+  const snapFeedbackCleanupRef =
+    useRef<
+      (() => void) | null
+    >(null);
+
+  /*
    * Interacción para mover una copia
    * completa sin alterar su forma.
    */
@@ -291,6 +308,9 @@ export function useExChacraEditing({
     const geometry =
       feature?.getGeometry();
 
+    const exChacrasSource =
+      exChacrasSourceRef.current;
+
     if (
       !map ||
       !selectInteraction ||
@@ -301,6 +321,16 @@ export function useExChacraEditing({
     }
 
     if (mode !== "idle") {
+      return;
+    }
+
+    if (
+      !map ||
+      !selectInteraction ||
+      !feature ||
+      !geometry ||
+      !exChacrasSource
+    ) {
       return;
     }
 
@@ -338,6 +368,30 @@ export function useExChacraEditing({
     map.addInteraction(
       modify,
     );
+
+    /*
+    * Snap contra todas las EXCHACRAS
+    * actualmente guardadas.
+    */
+    const snap =
+      createExChacraSnapInteraction(
+        exChacrasSource,
+      );
+
+    /*
+    * Snap debe agregarse después
+    * de Modify.
+    */
+    map.addInteraction(snap);
+
+    snapInteractionRef.current =
+      snap;
+
+    snapFeedbackCleanupRef.current =
+      attachExChacraSnapFeedback(
+        map,
+        snap,
+      );
 
     modifyInteractionRef.current =
       modify;
@@ -434,7 +488,27 @@ export function useExChacraEditing({
       );
     }
 
+    /*
+    * Eliminamos también el efecto imán.
+    */
+    if (
+      map &&
+      snapInteractionRef.current
+    ) {
+      map.removeInteraction(
+        snapInteractionRef.current,
+      );
+    }
+
+    snapFeedbackCleanupRef.current?.();
+
     modifyInteractionRef.current =
+      null;
+
+    snapInteractionRef.current =
+      null;
+
+    snapFeedbackCleanupRef.current =
       null;
 
     selectInteractionRef.current
@@ -550,6 +624,9 @@ export function useExChacraEditing({
     const selectInteraction =
       selectInteractionRef.current;
 
+    const exChacrasSource =
+      exChacrasSourceRef.current;
+
     if (
       !map ||
       !geometry ||
@@ -560,6 +637,16 @@ export function useExChacraEditing({
     }
 
     if (mode !== "idle") {
+      return;
+    }
+
+    if (
+      !map ||
+      !geometry ||
+      !draftSource ||
+      !selectInteraction ||
+      !exChacrasSource
+    ) {
       return;
     }
 
@@ -610,6 +697,30 @@ export function useExChacraEditing({
     map.addInteraction(
       translate,
     );
+
+    /*
+    * Intentamos alinear la copia con
+    * vértices/bordes existentes.
+    *
+    * Para obtener el mejor resultado,
+    * conviene comenzar el arrastre desde
+    * una esquina del rectángulo.
+    */
+    const snap =
+      createExChacraSnapInteraction(
+        exChacrasSource,
+      );
+
+    map.addInteraction(snap);
+
+    snapInteractionRef.current =
+      snap;
+
+    snapFeedbackCleanupRef.current =
+      attachExChacraSnapFeedback(
+        map,
+        snap,
+      );
 
     translateInteractionRef.current =
       translate;
@@ -780,6 +891,23 @@ export function useExChacraEditing({
 
     selectInteractionRef.current
       ?.setActive(true);
+
+    if (
+      map &&
+      snapInteractionRef.current
+    ) {
+      map.removeInteraction(
+        snapInteractionRef.current,
+      );
+    }
+
+    snapFeedbackCleanupRef.current?.();
+
+    snapInteractionRef.current =
+      null;
+
+    snapFeedbackCleanupRef.current =
+      null;  
 
     setMode("idle");
   }
