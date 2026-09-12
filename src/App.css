@@ -205,6 +205,14 @@ button {
   opacity: 0.65;
 }
 
+.checkbox-row--nested {
+  margin-left: 24px;
+
+  color: #6b7280;
+
+  font-size: 13px;
+}
+
 @media (max-width: 800px) {
   .workspace {
     grid-template-columns: 220px minmax(0, 1fr);

@@ -1,6 +1,16 @@
 import "./ExChacraDialog.css";
 
 interface ExChacraDialogProps {
+  /*
+   * Permite reutilizar este formulario
+   * tanto para Crear como para Duplicar.
+   */
+  title?: string;
+
+  description?: string;
+
+  saveLabel?: string;
+
   numberValue: string;
 
   error: string | null;
@@ -15,17 +25,35 @@ interface ExChacraDialogProps {
 }
 
 function ExChacraDialog({
+  title =
+    "Nueva EXCHACRA",
+
+  description,
+
+  saveLabel =
+    "Guardar",
+
   numberValue,
+
   error,
+
   onNumberChange,
+
   onCancel,
+
   onSave,
 }: ExChacraDialogProps) {
   return (
     <div className="exchacra-dialog">
       <h3>
-        Nueva EXCHACRA
+        {title}
       </h3>
+
+      {description && (
+        <p className="exchacra-dialog__description">
+          {description}
+        </p>
+      )}
 
       <label>
         Número
@@ -69,7 +97,7 @@ function ExChacraDialog({
           className="exchacra-dialog__save"
           onClick={onSave}
         >
-          Guardar
+          {saveLabel}
         </button>
       </div>
     </div>

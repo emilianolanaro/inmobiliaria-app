@@ -1,0 +1,161 @@
+.exchacra-selection-panel {
+  position: absolute;
+  z-index: 900;
+
+  top: 20px;
+  left: 20px;
+
+  width: 280px;
+  padding: 16px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 10px 25px
+    rgba(0, 0, 0, 0.16);
+}
+
+.exchacra-selection-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.exchacra-selection-panel__eyebrow {
+  color: #6b7280;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 0.08em;
+
+  text-transform: uppercase;
+}
+
+.exchacra-selection-panel h3 {
+  margin: 3px 0 0;
+
+  color: #111827;
+
+  font-size: 18px;
+}
+
+.exchacra-selection-panel p {
+  margin: 12px 0 0;
+
+  color: #6b7280;
+
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.exchacra-selection-panel__close {
+  width: 28px;
+  height: 28px;
+
+  padding: 0;
+
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+
+  background: #ffffff;
+
+  color: #4b5563;
+
+  cursor: pointer;
+
+  font-size: 20px;
+  line-height: 1;
+}
+
+.exchacra-selection-panel__field {
+  margin-top: 16px;
+}
+
+.exchacra-selection-panel__field label {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: #374151;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.exchacra-selection-panel__number-row {
+  display: flex;
+  gap: 6px;
+}
+
+.exchacra-selection-panel__number-row input {
+  flex: 1;
+  min-width: 0;
+
+  padding: 8px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+}
+
+.exchacra-selection-panel button {
+  cursor: pointer;
+}
+
+.exchacra-selection-panel__number-row button,
+.exchacra-selection-panel__tools button,
+.exchacra-selection-panel__actions button {
+  padding: 8px 10px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+
+  background: #ffffff;
+
+  color: #374151;
+}
+
+.exchacra-selection-panel__tools {
+  display: grid;
+  gap: 8px;
+
+  margin-top: 16px;
+}
+
+.exchacra-selection-panel__tools button {
+  text-align: left;
+}
+
+.exchacra-selection-panel__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+
+  margin-top: 16px;
+}
+
+.exchacra-selection-panel__primary {
+  border-color: #1f2937 !important;
+
+  background: #1f2937 !important;
+
+  color: #ffffff !important;
+}
+
+.exchacra-selection-panel__danger {
+  border-color: #fecaca !important;
+
+  color: #b91c1c !important;
+}
+
+.exchacra-selection-panel__danger:hover {
+  background: #fef2f2 !important;
+}
+
+.exchacra-selection-panel__error {
+  color: #b91c1c !important;
+}

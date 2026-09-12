@@ -23,6 +23,18 @@ function App() {
     (state) => state.startDrawingExChacra,
   );
 
+  const exChacraLabelsVisible =
+    useMapStore(
+      (state) =>
+        state.exChacraLabelsVisible,
+    );
+
+  const setExChacraLabelsVisible =
+    useMapStore(
+      (state) =>
+        state.setExChacraLabelsVisible,
+    );
+
   const drawingMode = useMapStore(
     (state) => state.drawingMode,
   );
@@ -92,6 +104,22 @@ function App() {
                 }
               />
               Exchacras
+            </label>
+
+            <label className="checkbox-row checkbox-row--nested">
+              <input
+                type="checkbox"
+                checked={
+                  exChacraLabelsVisible
+                }
+                onChange={(event) =>
+                  setExChacraLabelsVisible(
+                    event.target.checked,
+                  )
+                }
+              />
+
+              Mostrar números
             </label>
 
           </section>

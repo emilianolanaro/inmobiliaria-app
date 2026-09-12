@@ -12,16 +12,45 @@ export type MapDrawingMode =
   | null;
 
 interface MapState {
+  /*
+   * Mapa base.
+   */
   baseMapVisible: boolean;
 
-  layers: Record<MapOverlayLayer, boolean>;
+  /*
+   * Capas geográficas.
+   */
+  layers: Record<
+    MapOverlayLayer,
+    boolean
+  >;
 
+  /*
+   * Las etiquetas son independientes
+   * del polígono de EXCHACRAS.
+   *
+   * Esto permite:
+   *
+   * ☑ EXCHACRAS
+   * ☐ Nombres / números
+   */
+  exChacraLabelsVisible: boolean;
+
+  /*
+   * Herramienta de dibujo activa.
+   */
   drawingMode: MapDrawingMode;
 
-  setBaseMapVisible: (visible: boolean) => void;
+  setBaseMapVisible: (
+    visible: boolean,
+  ) => void;
 
   setLayerVisible: (
     layer: MapOverlayLayer,
+    visible: boolean,
+  ) => void;
+
+  setExChacraLabelsVisible: (
     visible: boolean,
   ) => void;
 
@@ -30,39 +59,59 @@ interface MapState {
   stopDrawing: () => void;
 }
 
-export const useMapStore = create<MapState>((set) => ({
-  baseMapVisible: true,
+export const useMapStore =
+  create<MapState>((set) => ({
+    baseMapVisible: true,
 
-  layers: {
-    exchacras: true,
-    neighborhoods: true,
-    blocks: true,
-    parcels: true,
-    properties: true,
-  },
+    layers: {
+      exchacras: true,
+      neighborhoods: true,
+      blocks: true,
+      parcels: true,
+      properties: true,
+    },
 
-  drawingMode: null,
+    /*
+     * Por defecto mostramos los números.
+     */
+    exChacraLabelsVisible: true,
 
-  setBaseMapVisible: (visible) =>
-    set({
-      baseMapVisible: visible,
-    }),
+    drawingMode: null,
 
-  setLayerVisible: (layer, visible) =>
-    set((state) => ({
-      layers: {
-        ...state.layers,
-        [layer]: visible,
-      },
-    })),
+    setBaseMapVisible: (
+      visible,
+    ) =>
+      set({
+        baseMapVisible: visible,
+      }),
 
-  startDrawingExChacra: () =>
-    set({
-      drawingMode: "exchacra",
-    }),
+    setLayerVisible: (
+      layer,
+      visible,
+    ) =>
+      set((state) => ({
+        layers: {
+          ...state.layers,
+          [layer]: visible,
+        },
+      })),
 
-  stopDrawing: () =>
-    set({
-      drawingMode: null,
-    }),
-}));
+    setExChacraLabelsVisible: (
+      visible,
+    ) =>
+      set({
+        exChacraLabelsVisible:
+          visible,
+      }),
+
+    startDrawingExChacra: () =>
+      set({
+        drawingMode:
+          "exchacra",
+      }),
+
+    stopDrawing: () =>
+      set({
+        drawingMode: null,
+      }),
+  }));

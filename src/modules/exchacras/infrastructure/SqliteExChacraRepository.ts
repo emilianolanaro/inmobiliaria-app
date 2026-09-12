@@ -2,6 +2,10 @@ import { getDatabase } from "../../../shared/infrastructure/database/database";
 
 import type { ExChacra } from "../domain/ExChacra";
 
+/*
+ * Representación exacta de una fila
+ * tal como viene desde SQLite.
+ */
 interface ExChacraRow {
   id: string;
   numero: number;
@@ -11,6 +15,11 @@ interface ExChacraRow {
   updated_at: string;
 }
 
+/*
+ * --------------------------------------------------
+ * CREAR
+ * --------------------------------------------------
+ */
 export async function saveExChacra(
   exChacra: ExChacra,
 ): Promise<void> {
@@ -39,31 +48,117 @@ export async function saveExChacra(
   );
 }
 
-export async function getAllExChacras(): Promise<
-  ExChacra[]
-> {
+/*
+ * --------------------------------------------------
+ * OBTENER TODAS
+ * --------------------------------------------------
+ */
+export async function getAllExChacras():
+  Promise<ExChacra[]> {
   const db = await getDatabase();
 
-  const rows = await db.select<ExChacraRow[]>(
-    `
-      SELECT
-        id,
-        numero,
-        geometry_geojson,
-        source,
-        created_at,
-        updated_at
-      FROM exchacras
-      ORDER BY numero
-    `,
-  );
+  const rows =
+    await db.select<ExChacraRow[]>(
+      `
+        SELECT
+          id,
+          numero,
+          geometry_geojson,
+          source,
+          created_at,
+          updated_at
+        FROM exchacras
+        ORDER BY numero
+      `,
+    );
 
   return rows.map((row) => ({
     id: row.id,
+
     numero: row.numero,
-    geometryGeoJson: row.geometry_geojson,
+
+    geometryGeoJson:
+      row.geometry_geojson,
+
     source: row.source,
+
     createdAt: row.created_at,
+
     updatedAt: row.updated_at,
   }));
+}
+
+/*
+ * --------------------------------------------------
+ * MODIFICAR NÚMERO
+ * --------------------------------------------------
+ */
+export async function updateExChacraNumber(
+  id: string,
+  numero: number,
+  updatedAt: string,
+): Promise<void> {
+  const db = await getDatabase();
+
+  await db.execute(
+    `
+      UPDATE exchacras
+      SET
+        numero = ?,
+        updated_at = ?
+      WHERE id = ?
+    `,
+    [
+      numero,
+      updatedAt,
+      id,
+    ],
+  );
+}
+
+/*
+ * --------------------------------------------------
+ * MODIFICAR GEOMETRÍA
+ * --------------------------------------------------
+ */
+export async function updateExChacraGeometry(
+  id: string,
+  geometryGeoJson: string,
+  updatedAt: string,
+): Promise<void> {
+  const db = await getDatabase();
+
+  await db.execute(
+    `
+      UPDATE exchacras
+      SET
+        geometry_geojson = ?,
+        updated_at = ?
+      WHERE id = ?
+    `,
+    [
+      geometryGeoJson,
+      updatedAt,
+      id,
+    ],
+  );
+}
+
+/*
+ * --------------------------------------------------
+ * ELIMINAR
+ * --------------------------------------------------
+ */
+export async function deleteExChacraById(
+  id: string,
+): Promise<void> {
+  const db = await getDatabase();
+
+  await db.execute(
+    `
+      DELETE FROM exchacras
+      WHERE id = ?
+    `,
+    [id],
+  );
 }

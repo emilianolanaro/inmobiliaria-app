@@ -1,37 +1,45 @@
 import {
   useEffect,
   useRef,
+  useState,
 } from "react";
 
 import Map from "ol/Map";
 import View from "ol/View";
-
+import Feature from "ol/Feature";
+import type Geometry from "ol/geom/Geometry";
+import Select from "ol/interaction/Select";
+import { singleClick } from "ol/events/condition";
 import TileLayer from "ol/layer/Tile";
-
 import OSM from "ol/source/OSM";
-
+import {Fill, Stroke, Style,} from "ol/style";
 import { fromLonLat } from "ol/proj";
-
 import { useMapStore } from "../application/useMapStore";
 
 import ExChacraDialog from "../../exchacras/presentation/ExChacraDialog";
-
+import ExChacraSelectionPanel, {
+  type SelectedExChacra,
+} from "../../exchacras/presentation/ExChacraSelectionPanel";
 import {
   createExChacraDraftLayer,
   createExChacraLayer,
   type ExChacraVectorSource,
   loadExChacrasIntoSource,
 } from "../../exchacras/presentation/exChacraMap";
-
-import { useExChacraCreation } from "../../exchacras/presentation/useExChacraCreation";
+import {
+  useExChacraCreation,
+} from "../../exchacras/presentation/useExChacraCreation";
+import {
+  useExChacraEditing,
+} from "../../exchacras/presentation/useExChacraEditing";
 
 import "ol/ol.css";
 import "./MapView.css";
 
+
 /*
  * Centro inicial aproximado de Chajarí.
  *
- * Coordenadas:
  * [longitud, latitud]
  */
 const CHAJARI_COORDINATES = [
@@ -62,12 +70,8 @@ function MapView() {
 
   /*
    * --------------------------------------------------
-   * REFERENCIAS A CAPAS
+   * CAPAS
    * --------------------------------------------------
-   *
-   * Solamente conservamos referencias a
-   * aquellas capas cuya visibilidad debe
-   * poder modificarse posteriormente.
    */
 
   const baseLayerRef =
@@ -83,8 +87,19 @@ function MapView() {
     >(null);
 
   /*
+   * Capa exclusivamente dedicada
+   * a "EXCHACRA 95", etc.
+   */
+  const exChacraLabelsLayerRef =
+    useRef<
+      ReturnType<
+        typeof createExChacraLayer
+      >["labelsLayer"] | null
+    >(null);
+
+  /*
    * --------------------------------------------------
-   * REFERENCIAS A SOURCES
+   * SOURCES
    * --------------------------------------------------
    */
 
@@ -96,6 +111,36 @@ function MapView() {
   const draftSourceRef =
     useRef<
       ExChacraVectorSource | null
+    >(null);
+
+  /*
+   * --------------------------------------------------
+   * SELECCIÓN
+   * --------------------------------------------------
+   */
+
+  const selectInteractionRef =
+    useRef<Select | null>(
+      null,
+    );
+
+  /*
+   * Guardamos también el Feature real.
+   *
+   * Más adelante será el objeto que
+   * editaremos, moveremos o duplicaremos.
+   */
+  const selectedFeatureRef =
+    useRef<
+      Feature<Geometry> | null
+    >(null);
+
+  const [
+    selectedExChacra,
+    setSelectedExChacra,
+  ] =
+    useState<
+      SelectedExChacra | null
     >(null);
 
   /*
@@ -116,23 +161,48 @@ function MapView() {
         state.layers.exchacras,
     );
 
+  const exChacraLabelsVisible =
+    useMapStore(
+      (state) =>
+        state.exChacraLabelsVisible,
+    );
+
+  const drawingMode =
+    useMapStore(
+      (state) =>
+        state.drawingMode,
+    );
+
   /*
    * --------------------------------------------------
    * CREACIÓN DE EXCHACRAS
    * --------------------------------------------------
-   *
-   * Toda la lógica de Draw + formulario +
-   * guardado se encuentra ahora aislada
-   * en este hook.
    */
 
   const exChacraCreation =
     useExChacraCreation({
       mapRef,
+
       draftSourceRef,
+
       exChacrasSourceRef,
     });
-
+   
+  /*
+ * --------------------------------------------------
+ * EDITOR DE EXCHACRAS EXISTENTES
+ * --------------------------------------------------
+ */
+const exChacraEditing =
+  useExChacraEditing({
+    mapRef,
+    selectInteractionRef,
+    selectedFeatureRef,
+    exChacrasSourceRef,
+    draftSourceRef,
+    selectedExChacra,
+    setSelectedExChacra,
+  });  
   /*
    * --------------------------------------------------
    * INICIALIZAR OPENLAYERS
@@ -155,14 +225,20 @@ function MapView() {
           baseMapVisible,
       });
 
-
-
     /*
-     * EXCHACRAS LOCALES
+     * EXCHACRAS
+     *
+     * Ahora devuelve:
+     *
+     * - source
+     * - layer
+     * - labelsLayer
      */
     const exChacras =
       createExChacraLayer(
         exChacrasVisible,
+
+        exChacraLabelsVisible,
       );
 
     /*
@@ -172,14 +248,16 @@ function MapView() {
       createExChacraDraftLayer();
 
     /*
-     * Guardamos las referencias
-     * necesarias para otras operaciones.
+     * Guardamos referencias.
      */
     baseLayerRef.current =
       baseLayer;
 
     exChacrasLayerRef.current =
       exChacras.layer;
+
+    exChacraLabelsLayerRef.current =
+      exChacras.labelsLayer;
 
     exChacrasSourceRef.current =
       exChacras.source;
@@ -188,7 +266,9 @@ function MapView() {
       draft.source;
 
     /*
+     * --------------------------------------------------
      * MAPA
+     * --------------------------------------------------
      */
     const map =
       new Map({
@@ -199,12 +279,17 @@ function MapView() {
           baseLayer,
 
           /*
-           * Catastro propio.
+           * Polígonos.
            */
           exChacras.layer,
+
           /*
-           * Dibujo actualmente
-           * en edición.
+           * Textos.
+           */
+          exChacras.labelsLayer,
+
+          /*
+           * Dibujo en curso.
            */
           draft.layer,
         ],
@@ -221,7 +306,169 @@ function MapView() {
     mapRef.current = map;
 
     /*
-     * CARGAR EXCHACRAS DESDE SQLITE
+    * --------------------------------------------------
+    * SELECCIÓN DE EXCHACRAS
+    * --------------------------------------------------
+    *
+    * Un clic:
+    *   selecciona.
+    *
+    * Otro clic sobre la misma:
+    *   deselecciona.
+    */
+    const selectInteraction =
+      new Select({
+        /*
+        * Solamente se pueden seleccionar
+        * Features de la capa de EXCHACRAS.
+        */
+        layers: [
+          exChacras.layer,
+        ],
+
+        /*
+        * La interacción se ejecuta
+        * con un clic normal.
+        */
+        condition: singleClick,
+
+        /*
+        * Hace que el mismo clic funcione
+        * como toggle:
+        *
+        * no seleccionada -> seleccionada
+        * seleccionada    -> deseleccionada
+        */
+        toggleCondition: singleClick,
+
+        /*
+        * Solamente queremos trabajar con
+        * una EXCHACRA a la vez.
+        */
+        multi: false,
+
+        /*
+        * Facilita hacer clic cerca
+        * de los bordes del polígono.
+        */
+        hitTolerance: 6,
+
+        /*
+        * Estilo de la EXCHACRA
+        * actualmente seleccionada.
+        */
+        style: new Style({
+          stroke: new Stroke({
+            color:
+              "rgba(109, 40, 217, 1)",
+
+            width: 4,
+          }),
+
+          fill: new Fill({
+            color:
+              "rgba(139, 92, 246, 0.22)",
+          }),
+        }),
+      });
+
+    selectInteraction.on(
+      "select",
+      (event) => {
+        /*
+        * Si se seleccionó una nueva EXCHACRA,
+        * nos aseguramos de que sea la única
+        * que quede seleccionada.
+        */
+        const feature =
+          event.selected[0] as
+            | Feature<Geometry>
+            | undefined;
+
+        if (feature) {
+          const selectedFeatures =
+            selectInteraction
+              .getFeatures();
+
+          /*
+          * Quitamos cualquier otra selección.
+          *
+          * Esto mantiene el comportamiento
+          * de selección única aunque usemos
+          * toggleCondition.
+          */
+          const others =
+            selectedFeatures
+              .getArray()
+              .filter(
+                (selectedFeature) =>
+                  selectedFeature !==
+                  feature,
+              );
+
+          for (
+            const otherFeature
+            of others
+          ) {
+            selectedFeatures.remove(
+              otherFeature,
+            );
+          }
+
+          const id =
+            feature.get("id");
+
+          const numero =
+            feature.get("numero");
+
+          if (
+            typeof id !== "string" ||
+            typeof numero !== "number"
+          ) {
+            return;
+          }
+
+          selectedFeatureRef.current =
+            feature;
+
+          setSelectedExChacra({
+            id,
+            numero,
+          });
+
+          return;
+        }
+
+        /*
+        * Si no hay Feature seleccionado pero
+        * sí hubo uno deseleccionado, significa
+        * que el usuario hizo nuevamente clic
+        * sobre la EXCHACRA seleccionada.
+        */
+        if (
+          event.deselected.length > 0
+        ) {
+          selectedFeatureRef.current =
+            null;
+
+          setSelectedExChacra(
+            null,
+          );
+        }
+      },
+    );
+
+    map.addInteraction(
+      selectInteraction,
+    );
+
+    selectInteractionRef.current =
+      selectInteraction;
+
+    /*
+     * --------------------------------------------------
+     * CARGAR SQLITE
+     * --------------------------------------------------
      */
     void loadExChacrasIntoSource(
       exChacras.source,
@@ -233,9 +480,15 @@ function MapView() {
     });
 
     /*
+     * --------------------------------------------------
      * CLEANUP
+     * --------------------------------------------------
      */
     return () => {
+      map.removeInteraction(
+        selectInteraction,
+      );
+
       map.setTarget(undefined);
 
       mapRef.current = null;
@@ -246,10 +499,19 @@ function MapView() {
       exChacrasLayerRef.current =
         null;
 
+      exChacraLabelsLayerRef.current =
+        null;
+
       exChacrasSourceRef.current =
         null;
 
       draftSourceRef.current =
+        null;
+
+      selectInteractionRef.current =
+        null;
+
+      selectedFeatureRef.current =
         null;
     };
   }, []);
@@ -269,7 +531,7 @@ function MapView() {
 
   /*
    * --------------------------------------------------
-   * VISIBILIDAD EXCHACRAS
+   * VISIBILIDAD DE POLÍGONOS
    * --------------------------------------------------
    */
 
@@ -279,6 +541,83 @@ function MapView() {
         exChacrasVisible,
       );
   }, [exChacrasVisible]);
+
+  /*
+   * --------------------------------------------------
+   * VISIBILIDAD DE ETIQUETAS
+   * --------------------------------------------------
+   */
+
+  useEffect(() => {
+    exChacraLabelsLayerRef.current
+      ?.setVisible(
+        exChacraLabelsVisible,
+      );
+  }, [
+    exChacraLabelsVisible,
+  ]);
+
+  /*
+   * --------------------------------------------------
+   * SELECCIÓN VS DIBUJO
+   * --------------------------------------------------
+   *
+   * Mientras se está dibujando una nueva
+   * EXCHACRA desactivamos Select.
+   *
+   * Así los clics utilizados para dibujar
+   * no seleccionan otras EXCHACRAS.
+   */
+  useEffect(() => {
+    const selectInteraction =
+      selectInteractionRef.current;
+
+    if (!selectInteraction) {
+      return;
+    }
+
+    const isDrawing =
+      drawingMode !== null;
+
+    selectInteraction.setActive(
+      !isDrawing,
+    );
+
+    if (isDrawing) {
+      /*
+       * Limpiamos selección anterior.
+       */
+      selectInteraction
+        .getFeatures()
+        .clear();
+
+      selectedFeatureRef.current =
+        null;
+
+      setSelectedExChacra(
+        null,
+      );
+    }
+  }, [drawingMode]);
+
+  /*
+   * --------------------------------------------------
+   * CERRAR SELECCIÓN
+   * --------------------------------------------------
+   */
+
+  function clearSelection() {
+    selectInteractionRef.current
+      ?.getFeatures()
+      .clear();
+
+    selectedFeatureRef.current =
+      null;
+
+    setSelectedExChacra(
+      null,
+    );
+  }
 
   /*
    * --------------------------------------------------
@@ -293,6 +632,56 @@ function MapView() {
         className="map"
       />
 
+      {selectedExChacra &&
+        !exChacraCreation.isDialogOpen && (
+          <ExChacraSelectionPanel
+            exChacra={
+              selectedExChacra
+            }
+
+            mode={
+              exChacraEditing.mode
+            }
+
+            error={
+              exChacraEditing.error
+            }
+
+            onClose={
+              clearSelection
+            }
+
+            onUpdateNumber={
+              exChacraEditing.saveNumber
+            }
+
+            onStartShapeEditing={
+              exChacraEditing
+                .startShapeEditing
+            }
+
+            onSaveShape={
+              exChacraEditing
+                .saveShape
+            }
+
+            onCancelShape={
+              exChacraEditing
+                .cancelShape
+            }
+
+            onDuplicate={
+              exChacraEditing
+                .startDuplicate
+            }
+
+            onDelete={
+              exChacraEditing
+                .remove
+            }
+          />
+        )}
+
       {exChacraCreation
         .isDialogOpen && (
         <ExChacraDialog
@@ -300,19 +689,58 @@ function MapView() {
             exChacraCreation
               .numberValue
           }
+
           error={
             exChacraCreation.error
           }
+
           onNumberChange={
             exChacraCreation
               .setNumberValue
           }
+
           onCancel={
             exChacraCreation.cancel
           }
+
           onSave={() =>
             void exChacraCreation
               .save()
+          }
+        />
+      )}
+
+      {exChacraEditing.mode ===
+        "duplicate" && (
+        <ExChacraDialog
+          title="Duplicar EXCHACRA"
+
+          description="Arrastrá la copia roja sobre el mapa hasta su nueva ubicación y asignale un número."
+
+          saveLabel="Guardar copia"
+
+          numberValue={
+            exChacraEditing
+              .duplicateNumber
+          }
+
+          error={
+            exChacraEditing.error
+          }
+
+          onNumberChange={
+            exChacraEditing
+              .setDuplicateNumber
+          }
+
+          onCancel={
+            exChacraEditing
+              .cancelDuplicate
+          }
+
+          onSave={() =>
+            void exChacraEditing
+              .saveDuplicate()
           }
         />
       )}

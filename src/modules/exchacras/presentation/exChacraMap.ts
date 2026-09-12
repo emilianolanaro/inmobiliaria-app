@@ -25,33 +25,47 @@ export type ExChacraVectorSource =
 
 /*
  * --------------------------------------------------
- * CAPA DE EXCHACRAS GUARDADAS
+ * CAPAS DE EXCHACRAS
  * --------------------------------------------------
  *
- * Crea:
+ * Utilizamos UN MISMO VectorSource,
+ * pero DOS capas visuales:
  *
- * - VectorSource
- * - VectorLayer
+ * 1. layer
+ *    -> dibuja los polígonos.
  *
- * Cada EXCHACRA almacenada en SQLite aparecerá
- * como un Feature independiente dentro del source.
+ * 2. labelsLayer
+ *    -> dibuja "EXCHACRA 95".
+ *
+ * Esto permite ocultar los nombres
+ * sin ocultar la geometría.
  */
 export function createExChacraLayer(
   visible: boolean,
+  labelsVisible: boolean,
 ) {
+  /*
+   * Todas las EXCHACRAS viven
+   * como Features independientes
+   * dentro de este source.
+   */
   const source =
-    new VectorSource<Feature<Geometry>>();
+    new VectorSource<
+      Feature<Geometry>
+    >();
 
-  const layer = new VectorLayer({
-    source,
+  /*
+   * --------------------------------------------------
+   * POLÍGONOS
+   * --------------------------------------------------
+   */
+  const layer =
+    new VectorLayer({
+      source,
 
-    visible,
+      visible,
 
-    style: (feature) => {
-      const numero =
-        feature.get("numero");
-
-      return new Style({
+      style: new Style({
         stroke: new Stroke({
           color:
             "rgba(124, 45, 18, 0.95)",
@@ -63,34 +77,75 @@ export function createExChacraLayer(
           color:
             "rgba(251, 146, 60, 0.18)",
         }),
+      }),
+    });
 
-        text: new Text({
-          text:
-            numero !== undefined
-              ? `EXCHACRA ${numero}`
-              : "",
+  /*
+   * --------------------------------------------------
+   * ETIQUETAS
+   * --------------------------------------------------
+   *
+   * Comparte exactamente los mismos
+   * Features que la capa anterior.
+   */
+  const labelsLayer =
+    new VectorLayer({
+      source,
 
-          font:
-            "bold 15px Arial, sans-serif",
+      visible: labelsVisible,
 
-          fill: new Fill({
-            color: "#7c2d12",
+      /*
+       * OpenLayers intenta evitar
+       * superponer textos.
+       */
+      declutter: true,
+
+      style: (feature) => {
+        const numero =
+          feature.get("numero");
+
+        if (
+          numero === undefined ||
+          numero === null
+        ) {
+          return undefined;
+        }
+
+        return new Style({
+          text: new Text({
+            text:
+              `EXCHACRA ${numero}`,
+
+            font:
+              "bold 15px Arial, sans-serif",
+
+            fill: new Fill({
+              color: "#7c2d12",
+            }),
+
+            stroke: new Stroke({
+              color: "#ffffff",
+              width: 4,
+            }),
+
+            overflow: true,
           }),
-
-          stroke: new Stroke({
-            color: "#ffffff",
-            width: 4,
-          }),
-
-          overflow: true,
-        }),
-      });
-    },
-  });
+        });
+      },
+    });
 
   return {
     source,
+
+    /*
+     * Geometría.
+     */
     layer,
+
+    /*
+     * Texto.
+     */
+    labelsLayer,
   };
 }
 
