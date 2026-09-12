@@ -1,26 +1,40 @@
 import Database from "@tauri-apps/plugin-sql";
 
-let database: Database | null = null;
+/*
+ * Una sola conexión SQLite para toda
+ * la ejecución de la aplicación.
+ */
+let database:
+  Database | null = null;
 
-export async function getDatabase(): Promise<Database> {
+/*
+ * La ruta es administrada por Tauri.
+ *
+ * No estamos creando inmobiliaria.db
+ * dentro del repositorio.
+ */
+const DATABASE_URL =
+  "sqlite:inmobiliaria.db";
+
+/*
+ * Devuelve la conexión local.
+ *
+ * La creación/evolución de tablas ya
+ * NO pertenece a TypeScript.
+ *
+ * El esquema se administra mediante
+ * migraciones de Tauri/Rust.
+ */
+export async function getDatabase():
+  Promise<Database> {
   if (database) {
     return database;
   }
 
-  database = await Database.load(
-    "sqlite:inmobiliaria.db",
-  );
-
-  await database.execute(`
-    CREATE TABLE IF NOT EXISTS exchacras (
-      id TEXT PRIMARY KEY,
-      numero INTEGER NOT NULL UNIQUE,
-      geometry_geojson TEXT NOT NULL,
-      source TEXT NOT NULL DEFAULT 'manual',
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
-    )
-  `);
+  database =
+    await Database.load(
+      DATABASE_URL,
+    );
 
   return database;
 }

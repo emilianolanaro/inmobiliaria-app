@@ -1,7 +1,6 @@
 import MapView from "./modules/map/presentation/MapView";
 import { useMapStore } from "./modules/map/application/useMapStore";
 import "./App.css";
-import AterConnectionStatus from "./modules/cadastre/presentation/AterConnectionStatus";
 
 function App() {
   const baseMapVisible = useMapStore(
@@ -95,55 +94,6 @@ function App() {
               Exchacras
             </label>
 
-            <label className="checkbox-row">
-              <input
-                type="checkbox"
-                checked={layers.neighborhoods}
-                onChange={(event) =>
-                  setLayerVisible(
-                    "neighborhoods",
-                    event.target.checked,
-                  )
-                }
-              />
-              Barrios
-            </label>
-
-            <label className="checkbox-row">
-              <input
-                type="checkbox"
-                checked={layers.blocks}
-                onChange={(event) =>
-                  setLayerVisible("blocks", event.target.checked)
-                }
-              />
-              Manzanas
-            </label>
-
-            <label className="checkbox-row">
-              <input
-                type="checkbox"
-                checked={layers.parcels}
-                onChange={(event) =>
-                  setLayerVisible("parcels", event.target.checked)
-                }
-              />
-              Parcelas
-            </label>
-
-            <label className="checkbox-row">
-              <input
-                type="checkbox"
-                checked={layers.properties}
-                onChange={(event) =>
-                  setLayerVisible(
-                    "properties",
-                    event.target.checked,
-                  )
-                }
-              />
-              Propiedades
-            </label>
           </section>
 
           <section className="sidebar__section">
@@ -204,9 +154,6 @@ function App() {
 
       <footer className="statusbar">
         <span>Mapa base online temporal</span>
-
-        <AterConnectionStatus />
-
         <span>Versión 0.1.0</span>
       </footer>
     </div>

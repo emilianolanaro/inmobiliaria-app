@@ -1,0 +1,103 @@
+.exchacra-dialog {
+  position: absolute;
+  z-index: 1000;
+
+  top: 20px;
+  right: 20px;
+
+  width: 270px;
+  padding: 18px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 10px 25px
+    rgba(0, 0, 0, 0.18);
+}
+
+.exchacra-dialog h3 {
+  margin: 0 0 15px;
+
+  color: #111827;
+
+  font-size: 16px;
+}
+
+.exchacra-dialog label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  color: #374151;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.exchacra-dialog input {
+  width: 100%;
+
+  padding: 9px 10px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+
+  outline: none;
+
+  background: #ffffff;
+
+  color: #111827;
+}
+
+.exchacra-dialog input:focus {
+  border-color: #6b7280;
+}
+
+.exchacra-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+
+  margin-top: 16px;
+}
+
+.exchacra-dialog__actions button {
+  padding: 8px 12px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+
+  background: #ffffff;
+
+  color: #374151;
+
+  cursor: pointer;
+}
+
+.exchacra-dialog__actions button:hover {
+  background: #f3f4f6;
+}
+
+.exchacra-dialog__save {
+  border-color: #1f2937 !important;
+
+  background: #1f2937 !important;
+
+  color: #ffffff !important;
+}
+
+.exchacra-dialog__save:hover {
+  background: #111827 !important;
+}
+
+.exchacra-dialog__error {
+  margin: 10px 0 0;
+
+  color: #b91c1c;
+
+  font-size: 12px;
+  line-height: 1.4;
+}

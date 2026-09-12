@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "inmobiliaria-crm-map",
+  "productName": "Sistema Inmobiliario",
   "version": "0.1.0",
   "identifier": "com.inmobiliariacrmmap.app",
   "build": {
@@ -12,9 +12,11 @@
   "app": {
     "windows": [
       {
-        "title": "inmobiliaria-crm-map",
-        "width": 800,
-        "height": 600
+        "title": "Sistema Inmobiliario",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 900,
+        "minHeight": 600
       }
     ],
     "security": {
