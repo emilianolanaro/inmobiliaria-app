@@ -4,15 +4,10 @@ use tauri_plugin_sql::{
 };
 
 /*
- * Migraciones de la base de datos local.
+ * Migraciones de la base SQLite local.
  *
- * Cada cambio futuro de estructura tendrá
- * una versión distinta:
- *
- * 1 -> EXCHACRAS
- * 2 -> barrios
- * 3 -> manzanas
- * etc.
+ * Cada cambio de estructura de la base
+ * tendrá en el futuro una versión nueva.
  */
 fn database_migrations() -> Vec<Migration> {
     vec![
@@ -36,28 +31,22 @@ fn database_migrations() -> Vec<Migration> {
     tauri::mobile_entry_point
 )]
 pub fn run() {
-    let migrations =
-        database_migrations();
-
     tauri::Builder::default()
         /*
-         * SQLite local.
-         *
-         * Las migraciones se ejecutarán
-         * cuando abramos inmobiliaria.db.
+         * SQLite local + migraciones.
          */
         .plugin(
             tauri_plugin_sql::Builder::default()
                 .add_migrations(
                     "sqlite:inmobiliaria.db",
-                    migrations,
+                    database_migrations(),
                 )
                 .build(),
         )
 
         /*
-         * Lo conservamos porque más adelante
-         * volveremos a consumir ATER.
+         * Lo conservamos para ATER,
+         * que volveremos a activar después.
          */
         .plugin(
             tauri_plugin_http::init(),

@@ -37,6 +37,12 @@ import {
   loadExChacrasIntoSource,
 } from "./exChacraMap";
 
+import {
+  createAdjacentRectangleGeometry,
+  snapFeatureToExistingExChacras,
+  type AdjacentDirection,
+} from "./drawing/duplicatePlacement";
+
 /*
  * Modos posibles del editor.
  */
@@ -597,144 +603,223 @@ export function useExChacraEditing({
     }
   }
 
-  /*
-   * --------------------------------------------------
-   * DUPLICAR
-   * --------------------------------------------------
-   *
-   * Esta operación conserva exactamente
-   * la misma geometría y dimensiones.
-   *
-   * Después Translate permite mover toda
-   * la copia como una única pieza.
-   */
-  function startDuplicate() {
-    const map =
-      mapRef.current;
-
-    const selectedFeature =
-      selectedFeatureRef.current;
-
-    const geometry =
-      selectedFeature?.getGeometry();
-
-    const draftSource =
-      draftSourceRef.current;
-
-    const selectInteraction =
-      selectInteractionRef.current;
-
-    const exChacrasSource =
-      exChacrasSourceRef.current;
-
-    if (
-      !map ||
-      !geometry ||
-      !draftSource ||
-      !selectInteraction
-    ) {
-      return;
-    }
-
-    if (mode !== "idle") {
-      return;
-    }
-
-    if (
-      !map ||
-      !geometry ||
-      !draftSource ||
-      !selectInteraction ||
-      !exChacrasSource
-    ) {
-      return;
-    }
-
-    setError(null);
-
-    setDuplicateNumber("");
 
     /*
-     * Creamos un nuevo Feature con una
-     * geometría clonada.
-     *
-     * El original NO se modifica.
-     */
-    const duplicateFeature =
-      new Feature<Geometry>({
-        geometry:
-          geometry.clone(),
-      });
-
-    draftSource.clear();
-
-    draftSource.addFeature(
-      duplicateFeature,
-    );
-
-    duplicateFeatureRef.current =
-      duplicateFeature;
-
-    /*
-     * Translate requiere una Collection.
-     *
-     * Solamente agregamos nuestra copia,
-     * por lo que únicamente ella podrá
-     * arrastrarse.
-     */
-    const features =
-      new Collection<
-        Feature<Geometry>
-      >([
-        duplicateFeature,
-      ]);
-
-    const translate =
-      new Translate({
-        features,
-      });
-
-    map.addInteraction(
-      translate,
-    );
-
-    /*
-    * Intentamos alinear la copia con
-    * vértices/bordes existentes.
+    * --------------------------------------------------
+    * INICIAR UNA OPERACIÓN DE DUPLICACIÓN
+    * --------------------------------------------------
     *
-    * Para obtener el mejor resultado,
-    * conviene comenzar el arrastre desde
-    * una esquina del rectángulo.
+    * Recibe una geometría ya preparada.
+    *
+    * Puede provenir de:
+    *
+    * - una copia idéntica en el mismo lugar;
+    * - una copia ya posicionada a la derecha;
+    * - izquierda;
+    * - arriba;
+    * - abajo.
     */
-    const snap =
-      createExChacraSnapInteraction(
-        exChacrasSource,
+    function beginDuplicate(
+      geometry: Geometry,
+    ) {
+      const map =
+        mapRef.current;
+
+      const draftSource =
+        draftSourceRef.current;
+
+      const exChacrasSource =
+        exChacrasSourceRef.current;
+
+      const selectInteraction =
+        selectInteractionRef.current;
+
+      if (
+        !map ||
+        !draftSource ||
+        !exChacrasSource ||
+        !selectInteraction
+      ) {
+        return;
+      }
+
+      if (
+        mode !== "idle"
+      ) {
+        return;
+      }
+
+      setError(null);
+
+      setDuplicateNumber("");
+
+      /*
+      * Nueva entidad temporal.
+      *
+      * Todavía NO tiene UUID porque
+      * todavía no fue guardada.
+      */
+      const duplicateFeature =
+        new Feature<Geometry>({
+          geometry,
+        });
+
+      draftSource.clear();
+
+      draftSource.addFeature(
+        duplicateFeature,
       );
 
-    map.addInteraction(snap);
+      duplicateFeatureRef.current =
+        duplicateFeature;
 
-    snapInteractionRef.current =
-      snap;
+      /*
+      * Solamente nuestra copia puede
+      * ser arrastrada.
+      */
+      const features =
+        new Collection<
+          Feature<Geometry>
+        >([
+          duplicateFeature,
+        ]);
 
-    snapFeedbackCleanupRef.current =
-      attachExChacraSnapFeedback(
-        map,
-        snap,
+      const translate =
+        new Translate({
+          features,
+        });
+
+      /*
+      * --------------------------------------------------
+      * SNAP DEL POLÍGONO COMPLETO
+      * --------------------------------------------------
+      *
+      * Cuando el usuario suelta la copia
+      * cerca de otra EXCHACRA, buscamos:
+      *
+      * - vértices cercanos;
+      * - centros de bordes cercanos.
+      *
+      * Si encontramos una coincidencia,
+      * movemos TODA la copia.
+      */
+      translate.on(
+        "translateend",
+        () => {
+          snapFeatureToExistingExChacras(
+            duplicateFeature,
+            exChacrasSource,
+
+            /*
+            * Tolerancia en METROS.
+            */
+            8,
+          );
+        },
       );
 
-    translateInteractionRef.current =
-      translate;
+      map.addInteraction(
+        translate,
+      );
+
+      translateInteractionRef.current =
+        translate;
+
+      /*
+      * Mientras movemos una copia,
+      * no queremos seleccionar otras
+      * EXCHACRAS accidentalmente.
+      */
+      selectInteraction.setActive(
+        false,
+      );
+
+      setMode(
+        "duplicate",
+      );
+    }
 
     /*
-     * Desactivamos selección mientras
-     * estamos arrastrando la copia.
-     */
-    selectInteraction.setActive(
-      false,
-    );
+    * --------------------------------------------------
+    * DUPLICAR Y MOVER LIBREMENTE
+    * --------------------------------------------------
+    *
+    * Comportamiento que ya teníamos.
+    */
+    function startDuplicate() {
+      const geometry =
+        selectedFeatureRef.current
+          ?.getGeometry();
 
-    setMode("duplicate");
-  }
+      if (!geometry) {
+        return;
+      }
+
+      /*
+      * La geometría original jamás
+      * se modifica.
+      */
+      beginDuplicate(
+        geometry.clone(),
+      );
+    }
+
+    /*
+    * --------------------------------------------------
+    * DUPLICAR CONTIGUA
+    * --------------------------------------------------
+    *
+    * Esta es la nueva operación:
+    *
+    *        ↑
+    *
+    *   ← ORIGINAL →
+    *
+    *        ↓
+    *
+    * La posición inicial de la copia
+    * ya queda matemáticamente pegada
+    * al borde correspondiente.
+    */
+    function startAdjacentDuplicate(
+      direction:
+        AdjacentDirection,
+    ) {
+      const geometry =
+        selectedFeatureRef.current
+          ?.getGeometry();
+
+      if (!geometry) {
+        return;
+      }
+
+      try {
+        setError(null);
+
+        const adjacentGeometry =
+          createAdjacentRectangleGeometry(
+            geometry,
+            direction,
+          );
+
+        beginDuplicate(
+          adjacentGeometry,
+        );
+      } catch (
+        duplicateError
+      ) {
+        console.error(
+          "No se pudo duplicar la EXCHACRA contigua:",
+          duplicateError,
+        );
+
+        setError(
+          duplicateError instanceof Error
+            ? duplicateError.message
+            : "No se pudo crear la copia contigua.",
+        );
+      }
+    }
 
   /*
    * Guardar la copia como una entidad
@@ -925,5 +1010,6 @@ export function useExChacraEditing({
     startDuplicate,
     saveDuplicate,
     cancelDuplicate,
+    startAdjacentDuplicate,
   };
 }

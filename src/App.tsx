@@ -140,8 +140,8 @@ function App() {
 
             {drawingMode === "exchacra" && (
               <p className="drawing-help">
-                Marcá los vértices de la EXCHACRA sobre el mapa.
-                Hacé clic sobre el primer punto para cerrar el polígono.
+                Elegí el modo de dibujo en el
+                panel del mapa.
               </p>
             )}
           </section>

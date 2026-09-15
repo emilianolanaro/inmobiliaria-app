@@ -1,0 +1,321 @@
+.exchacra-drawing-panel {
+  position: absolute;
+  z-index: 950;
+
+  top: 20px;
+  right: 20px;
+
+  width: 300px;
+  padding: 16px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 10px 25px
+    rgba(0, 0, 0, 0.16);
+}
+
+.exchacra-drawing-panel__header h3 {
+  margin: 3px 0 0;
+
+  color: #111827;
+
+  font-size: 18px;
+}
+
+.exchacra-drawing-panel__eyebrow {
+  color: #6b7280;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 0.08em;
+
+  text-transform: uppercase;
+}
+
+.exchacra-drawing-panel__section {
+  margin-top: 16px;
+}
+
+.exchacra-drawing-panel__label {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: #374151;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.exchacra-drawing-panel__segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  gap: 4px;
+
+  padding: 3px;
+
+  border-radius: 7px;
+
+  background: #f3f4f6;
+}
+
+.exchacra-drawing-panel__segmented button {
+  padding: 8px;
+
+  border: 0;
+  border-radius: 5px;
+
+  background: transparent;
+
+  color: #4b5563;
+
+  cursor: pointer;
+}
+
+.exchacra-drawing-panel__segmented button.is-active {
+  background: #ffffff;
+
+  color: #111827;
+
+  font-weight: 600;
+
+  box-shadow:
+    0 1px 3px
+    rgba(0, 0, 0, 0.12);
+}
+
+.exchacra-drawing-panel__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  gap: 8px;
+
+  margin-top: 14px;
+}
+
+.exchacra-drawing-panel__grid label,
+.exchacra-drawing-panel__rotation {
+  display: block;
+
+  color: #374151;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.exchacra-drawing-panel__rotation {
+  margin-top: 10px;
+}
+
+.exchacra-drawing-panel__unit {
+  display: flex;
+  align-items: center;
+
+  margin-top: 5px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+
+  overflow: hidden;
+}
+
+.exchacra-drawing-panel__unit input {
+  width: 100%;
+  min-width: 0;
+
+  padding: 8px;
+
+  border: 0;
+
+  outline: none;
+}
+
+.exchacra-drawing-panel__unit span {
+  padding: 0 8px;
+
+  color: #6b7280;
+
+  font-size: 12px;
+}
+
+.exchacra-drawing-panel__help {
+  margin: 12px 0 0;
+
+  color: #6b7280;
+
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.exchacra-drawing-panel__primary {
+  width: 100%;
+
+  margin-top: 14px;
+  padding: 9px 12px;
+
+  border: 1px solid #1f2937;
+  border-radius: 6px;
+
+  background: #1f2937;
+
+  color: #ffffff;
+
+  cursor: pointer;
+}
+
+.exchacra-drawing-panel__cancel {
+  width: 100%;
+
+  margin-top: 10px;
+  padding: 8px 12px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+
+  background: #ffffff;
+
+  color: #4b5563;
+
+  cursor: pointer;
+}
+
+.exchacra-drawing-panel__error {
+  margin: 10px 0 0;
+
+  color: #b91c1c;
+
+  font-size: 12px;
+}
+
+/*
+ * --------------------------------------------------
+ * MODO LIBRE / CAD
+ * --------------------------------------------------
+ */
+
+.exchacra-drawing-panel__free-options {
+  margin-top: 14px;
+}
+
+.exchacra-drawing-panel__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #374151;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.exchacra-drawing-panel__checkbox input {
+  margin: 0;
+}
+
+.exchacra-drawing-panel__fixed-length {
+  display: block;
+
+  margin-top: 10px;
+
+  color: #374151;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.exchacra-drawing-panel__live-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+
+  margin-top: 14px;
+  padding: 9px 10px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+
+  background: #f9fafb;
+
+  color: #6b7280;
+
+  font-size: 11px;
+}
+
+.exchacra-drawing-panel__live-info strong {
+  color: #111827;
+}
+
+.exchacra-drawing-panel__free-actions {
+  display: grid;
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 7px;
+
+  margin-top: 12px;
+}
+
+.exchacra-drawing-panel__free-actions button {
+  padding: 8px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+
+  background: #ffffff;
+
+  color: #374151;
+
+  cursor: pointer;
+}
+
+.exchacra-drawing-panel__free-actions button:disabled {
+  cursor: default;
+
+  opacity: 0.45;
+}
+
+.exchacra-drawing-panel__shortcuts {
+  margin: 10px 0 0;
+
+  color: #9ca3af;
+
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/*
+ * Etiqueta flotante que acompaña
+ * al extremo del segmento.
+ */
+.drawing-measure-tooltip {
+  padding: 4px 7px;
+
+  border: 1px solid
+    rgba(17, 24, 39, 0.15);
+
+  border-radius: 5px;
+
+  background:
+    rgba(17, 24, 39, 0.88);
+
+  color: #ffffff;
+
+  pointer-events: none;
+
+  white-space: nowrap;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  box-shadow:
+    0 2px 6px
+    rgba(0, 0, 0, 0.18);
+}

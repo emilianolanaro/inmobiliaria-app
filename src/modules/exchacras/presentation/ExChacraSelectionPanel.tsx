@@ -9,6 +9,10 @@ import type {
 
 import "./ExChacraSelectionPanel.css";
 
+import type {
+  AdjacentDirection,
+} from "./drawing/duplicatePlacement";
+
 export interface SelectedExChacra {
   id: string;
   numero: number;
@@ -44,6 +48,11 @@ interface Props {
 
   onDelete:
     () => Promise<void>;
+
+  onDuplicateAdjacent: (
+    direction:
+      AdjacentDirection,
+  ) => void;
 }
 
 function ExChacraSelectionPanel({
@@ -57,6 +66,7 @@ function ExChacraSelectionPanel({
   onCancelShape,
   onDuplicate,
   onDelete,
+  onDuplicateAdjacent,
 }: Props) {
   const [
     numberValue,
@@ -173,6 +183,74 @@ function ExChacraSelectionPanel({
 
       {mode === "idle" && (
         <>
+          <div className="exchacra-selection-panel__adjacent">
+            <span className="exchacra-selection-panel__adjacent-title">
+              Duplicar contigua
+            </span>
+
+            <p className="exchacra-selection-panel__adjacent-help">
+              Crea una copia del mismo tamaño
+              pegada exactamente al borde.
+            </p>
+
+            <div className="exchacra-selection-panel__direction-pad">
+              <button
+                type="button"
+                className="direction-up"
+                title="Duplicar arriba"
+                onClick={() =>
+                  onDuplicateAdjacent(
+                    "up",
+                  )
+                }
+              >
+                ↑
+              </button>
+
+              <button
+                type="button"
+                className="direction-left"
+                title="Duplicar a la izquierda"
+                onClick={() =>
+                  onDuplicateAdjacent(
+                    "left",
+                  )
+                }
+              >
+                ←
+              </button>
+
+              <div className="direction-center">
+                {exChacra.numero}
+              </div>
+
+              <button
+                type="button"
+                className="direction-right"
+                title="Duplicar a la derecha"
+                onClick={() =>
+                  onDuplicateAdjacent(
+                    "right",
+                  )
+                }
+              >
+                →
+              </button>
+
+              <button
+                type="button"
+                className="direction-down"
+                title="Duplicar abajo"
+                onClick={() =>
+                  onDuplicateAdjacent(
+                    "down",
+                  )
+                }
+              >
+                ↓
+              </button>
+            </div>
+          </div>
           <div className="exchacra-selection-panel__field">
             <label>
               Número
@@ -231,7 +309,7 @@ function ExChacraSelectionPanel({
                 onDuplicate
               }
             >
-              Duplicar y mover
+              Duplicar
             </button>
 
             <button

@@ -26,9 +26,10 @@ import {
   type ExChacraVectorSource,
   loadExChacrasIntoSource,
 } from "../../exchacras/presentation/exChacraMap";
+import ExChacraDrawingPanel from "../../exchacras/presentation/ExChacraDrawingPanel";
 import {
-  useExChacraCreation,
-} from "../../exchacras/presentation/useExChacraCreation";
+  useExChacraDrawing,
+} from "../../exchacras/presentation/drawing/useExChacraDrawing";
 import {
   useExChacraEditing,
 } from "../../exchacras/presentation/useExChacraEditing";
@@ -179,14 +180,12 @@ function MapView() {
    * --------------------------------------------------
    */
 
-  const exChacraCreation =
-    useExChacraCreation({
-      mapRef,
-
-      draftSourceRef,
-
-      exChacrasSourceRef,
-    });
+  const exChacraDrawing =
+  useExChacraDrawing({
+    mapRef,
+    draftSourceRef,
+    exChacrasSourceRef,
+  });
    
   /*
  * --------------------------------------------------
@@ -633,7 +632,7 @@ const exChacraEditing =
       />
 
       {selectedExChacra &&
-        !exChacraCreation.isDialogOpen && (
+        !exChacraDrawing.isNumberDialogOpen && (
           <ExChacraSelectionPanel
             exChacra={
               selectedExChacra
@@ -679,32 +678,164 @@ const exChacraEditing =
               exChacraEditing
                 .remove
             }
+            
+            onDuplicateAdjacent={
+              exChacraEditing
+                .startAdjacentDuplicate
+            }
           />
         )}
 
-      {exChacraCreation
-        .isDialogOpen && (
+      {exChacraDrawing
+        .isDrawingPanelOpen && (
+        <ExChacraDrawingPanel
+          drawMode={
+            exChacraDrawing
+              .drawMode
+          }
+
+          rectangleMode={
+            exChacraDrawing
+              .rectangleMode
+          }
+
+          widthValue={
+            exChacraDrawing
+              .widthValue
+          }
+
+          heightValue={
+            exChacraDrawing
+              .heightValue
+          }
+
+          rotationValue={
+            exChacraDrawing
+              .rotationValue
+          }
+
+          exactRectangleReady={
+            exChacraDrawing
+              .exactRectangleReady
+          }
+
+          error={
+            exChacraDrawing.error
+          }
+
+          onDrawModeChange={
+            exChacraDrawing
+              .changeDrawMode
+          }
+
+          onRectangleModeChange={
+            exChacraDrawing
+              .changeRectangleMode
+          }
+
+          onWidthChange={
+            exChacraDrawing
+              .setWidthValue
+          }
+
+          onHeightChange={
+            exChacraDrawing
+              .setHeightValue
+          }
+
+          onRotationChange={
+            exChacraDrawing
+              .setRotationValue
+          }
+
+          onGenerateRectangle={
+            exChacraDrawing
+              .generateExactRectangle
+          }
+
+          onConfirmRectangle={
+            exChacraDrawing
+              .confirmExactRectangle
+          }
+
+          onCancel={
+            exChacraDrawing
+              .cancelDrawing
+          }
+
+          fixedLengthEnabled={
+            exChacraDrawing
+              .fixedLengthEnabled
+          }
+
+          fixedLengthValue={
+            exChacraDrawing
+              .fixedLengthValue
+          }
+
+          freeVertexCount={
+            exChacraDrawing
+              .freeVertexCount
+          }
+
+          liveSegmentLength={
+            exChacraDrawing
+              .liveSegmentLength
+          }
+
+          liveSegmentAngle={
+            exChacraDrawing
+              .liveSegmentAngle
+          }
+
+          onFixedLengthEnabledChange={
+            exChacraDrawing
+              .setFixedLengthEnabled
+          }
+
+          onFixedLengthValueChange={
+            exChacraDrawing
+              .setFixedLengthValue
+          }
+
+          onUndoFreePoint={
+            exChacraDrawing
+              .undoFreePoint
+          }
+
+          onFinishFreePolygon={
+            exChacraDrawing
+              .finishFreePolygon
+          }
+        />
+      )}
+
+      {exChacraDrawing
+        .isNumberDialogOpen && (
         <ExChacraDialog
+          title="Guardar EXCHACRA"
+
           numberValue={
-            exChacraCreation
+            exChacraDrawing
               .numberValue
           }
 
           error={
-            exChacraCreation.error
+            exChacraDrawing.error
           }
 
           onNumberChange={
-            exChacraCreation
+            exChacraDrawing
               .setNumberValue
           }
 
           onCancel={
-            exChacraCreation.cancel
+            exChacraDrawing
+              .cancelNumberDialog
           }
 
           onSave={() =>
-            void exChacraCreation
+            void exChacraDrawing
               .save()
           }
         />

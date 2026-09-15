@@ -1,29 +1,20 @@
 import Database from "@tauri-apps/plugin-sql";
 
 /*
- * Una sola conexión SQLite para toda
- * la ejecución de la aplicación.
+ * Mantenemos una única conexión SQLite
+ * durante toda la ejecución de la app.
  */
 let database:
   Database | null = null;
 
-/*
- * La ruta es administrada por Tauri.
- *
- * No estamos creando inmobiliaria.db
- * dentro del repositorio.
- */
 const DATABASE_URL =
   "sqlite:inmobiliaria.db";
 
 /*
- * Devuelve la conexión local.
+ * El esquema ya NO se crea desde TypeScript.
  *
- * La creación/evolución de tablas ya
- * NO pertenece a TypeScript.
- *
- * El esquema se administra mediante
- * migraciones de Tauri/Rust.
+ * Las tablas y futuras modificaciones se
+ * administran mediante migraciones de Tauri.
  */
 export async function getDatabase():
   Promise<Database> {
